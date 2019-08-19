@@ -5,11 +5,14 @@ var ballons = [];
 
 $(function ()
 {
+	document.addEventListener("touchstart", TouchStart, { passive: false });
+
 	//set canvas size
 	var width = $(window).width();
 	var height = $(window).height();
-	var ratio = 0.5625;
-	width = Math.round(height * ratio);
+	var ratio = 0.70;
+	height = Math.round(width /ratio);
+	//width = Math.round(height * ratio);
 	ballonRadius = Math.round(height * 0.08);
 
 	canvas = document.getElementById("BallonCanvas");
@@ -21,6 +24,14 @@ $(function ()
 	startTime = lastTime;
 	GameLoop();
 });
+
+function TouchStart(e)
+{
+	e.preventDefault();
+	//player.TouchEnd = false;
+	//player.TouchStartX = e.touches[0].clientX;
+	//player.TouchStartY = e.touches[0].clientY;
+}
 
 function GameLoop()
 {
@@ -48,8 +59,6 @@ function Update()
 	}
 
 	//move ballons
-	var hSpeed = 0.2;
-
 	for (var i = 0; i < ballons.length; i++)
 	{
 		var ballon = ballons[i];
@@ -57,12 +66,18 @@ function Update()
 
 		ballon.curY -= speed;
 
-		if (ballon.curX < ballon.endX)
-			ballon.curX += hSpeed;
-		else if (ballon.curX > ballon.endX)
-			ballon.curX -= hSpeed;
+		if (ballon.curX + 2 < ballon.endX)
+			ballon.curX += ballon.hSpeed;
+		else if (ballon.curX - 2 > ballon.endX)
+			ballon.curX -= ballon.hSpeed;
+		else
+		{
+			//set new x destination
+			ballon.endX = GetRandomNumber(ballonRadius, canvas.width - ballonRadius);
+		}
 
-		if (ballon.curY < -ballonRadius)
+		//remove if off screen. splicing too early will cause shifting bug.
+		if (ballon.curY < -canvas.height)
 			ballons.splice(i, 1);
 	}
 
@@ -98,7 +113,7 @@ function CreateBallon()
 	ballon.endX = GetRandomNumber(minX, maxX);
 	ballon.color = colors[GetRandomNumber(0, colors.length - 1)];
 	ballon.speed = GetRandomNumber(90, 110) / 10;
-	console.log(ballon.speed);
+	ballon.hSpeed = GetRandomNumber(15, 25) / 100;
 
 	ballons.push(ballon);
 }
