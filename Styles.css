@@ -1,0 +1,13 @@
+﻿body
+{
+	margin:0;
+	background-color:black;
+}
+#CanvasDiv
+{
+	text-align: center;
+}
+#BallonCanvas
+{
+	background-color: #99d4ff;
+}
