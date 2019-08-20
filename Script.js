@@ -145,7 +145,13 @@ function DrawBalloon(balloon)
 	context.arc(balloon.x, balloon.y, balloonRadius, 0, 2 * Math.PI, false);
 	context.fillStyle = balloon.color;
 	context.fill();
+
 	context.lineWidth = 2;
 	context.strokeStyle = 'black';
 	context.stroke();
+
+	context.beginPath();
+	context.arc(balloon.x + Math.round(balloonRadius / 4), balloon.y - Math.round(balloonRadius / 4), Math.round(balloonRadius / 3), 0, 2 * Math.PI, false);
+	context.fillStyle = "white";
+	context.fill();
 }
