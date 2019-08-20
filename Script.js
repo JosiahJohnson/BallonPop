@@ -100,7 +100,8 @@ function Update()
 	}
 
 	//remove balloons
-	for (var i = 0; i < remove.length; i++)
+	remove.sort((a, b) => (a - b));
+	for (var i = remove.length - 1; i >= 0; i--)
 	{
 		balloons.splice(remove[i], 1);
 	}
