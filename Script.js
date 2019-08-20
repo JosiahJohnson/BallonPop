@@ -1,7 +1,9 @@
-var canvas, context, startTime, lastTime, curTime, elapsedTime, delta, ballonRadius;
-var nextBallon = 0;
+var canvas, context, startTime, lastTime, curTime, elapsedTime, delta, balloonRadius;
+var nextBalloon = 0;
 var colors = ["#FF0000", "#FF6A00", "#FFD800", "#00C116", "#0026FF", "#B200FF", "#FF00DC", "#FFFFFF", "#A0A0A0", "#00FFFF"];
-var ballons = [];
+var balloons = [];
+var touchX = null;
+var touchY = null;
 
 $(function ()
 {
@@ -11,11 +13,14 @@ $(function ()
 	var width = $(window).width();
 	var height = $(window).height();
 	var ratio = 0.70;
-	height = Math.round(width /ratio);
-	//width = Math.round(height * ratio);
-	ballonRadius = Math.round(height * 0.08);
 
-	canvas = document.getElementById("BallonCanvas");
+	if (width > 500)
+		width = 500;
+
+	height = Math.round(width /ratio);
+	balloonRadius = Math.round(height * 0.10);
+
+	canvas = document.getElementById("BalloonCanvas");
 	context = canvas.getContext("2d");
 	canvas.width = width;
 	canvas.height = height;
@@ -28,9 +33,8 @@ $(function ()
 function TouchStart(e)
 {
 	e.preventDefault();
-	//player.TouchEnd = false;
-	//player.TouchStartX = e.touches[0].clientX;
-	//player.TouchStartY = e.touches[0].clientY;
+	touchX = e.touches[0].clientX;
+	touchY = e.touches[0].clientY;
 }
 
 function GameLoop()
@@ -49,49 +53,69 @@ function GameLoop()
 
 function Update()
 {
-	//check ballon delay
-	if (elapsedTime > nextBallon)
+	//check balloon delay
+	if (elapsedTime > nextBalloon)
 	{
-		CreateBallon();
+		CreateBalloon();
 
 		var delay = GetRandomNumber(500, 1500);
-		nextBallon = elapsedTime + delay;
+		nextBalloon = elapsedTime + delay;
 	}
 
-	//move ballons
-	for (var i = 0; i < ballons.length; i++)
+	var remove = [];
+
+	//check for popped balloons
+	if (touchX != null && touchY != null)
 	{
-		var ballon = ballons[i];
-		var speed = delta * ballon.speed;
+		console.log(touchX);
 
-		ballon.curY -= speed;
-
-		if (ballon.curX + 2 < ballon.endX)
-			ballon.curX += ballon.hSpeed;
-		else if (ballon.curX - 2 > ballon.endX)
-			ballon.curX -= ballon.hSpeed;
-		else
+		for (var i = 0; i < balloons.length; i++)
 		{
-			//set new x destination
-			ballon.endX = GetRandomNumber(ballonRadius, canvas.width - ballonRadius);
+			var balloon = balloons[i];
+
+			if (touchX > (balloon.x - balloonRadius) && touchX < (balloon.x + balloonRadius) && touchY > (balloon.y - balloonRadius) && touchY < (balloon.y + balloonRadius))
+				remove.push(i);
 		}
 
-		//remove if off screen. splicing too early will cause shifting bug.
-		if (ballon.curY < -canvas.height)
-			ballons.splice(i, 1);
+		touchX = null;
+		touchY = null;
 	}
 
-	//console.log(ballons.length);
+	for (var i = 0; i < balloons.length; i++)
+	{
+		//move balloons
+		var balloon = balloons[i];
+		var speed = delta * balloon.speed;
+
+		balloon.y -= speed;
+
+		if (balloon.dir == 0)
+			balloon.x -= balloon.hSpeed;
+		else
+			balloon.x += balloon.hSpeed;
+
+		//check if off screen
+		if (balloon.y < -balloonRadius && !remove.includes(i))
+			remove.push(i);
+	}
+
+	//remove balloons
+	for (var i = 0; i < remove.length; i++)
+	{
+		balloons.splice(remove[i], 1);
+	}
+
+	//console.log(balloons.length);
 }
 
 function Render()
 {
 	context.clearRect(0, 0, canvas.width, canvas.height);
 
-	//draw ballons
-	for (var i = 0; i < ballons.length; i++)
+	//draw balloons
+	for (var i = 0; i < balloons.length; i++)
 	{
-		DrawBallon(ballons[i]);
+		DrawBalloon(balloons[i]);
 	}
 }
 
@@ -102,27 +126,24 @@ function GetRandomNumber(min, max)
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function CreateBallon()
+function CreateBalloon()
 {
-	var minX = ballonRadius;
-	var maxX = canvas.width - ballonRadius;
+	var balloon = {};
+	balloon.x = GetRandomNumber(balloonRadius, canvas.width - balloonRadius);
+	balloon.y = canvas.height + balloonRadius;
+	balloon.dir = GetRandomNumber(0, 1);
+	balloon.color = colors[GetRandomNumber(0, colors.length - 1)];
+	balloon.speed = GetRandomNumber(90, 110) / 10;
+	balloon.hSpeed = GetRandomNumber(15, 25) / 100;
 
-	var ballon = {};
-	ballon.curX = GetRandomNumber(minX, maxX);
-	ballon.curY = canvas.height + ballonRadius;
-	ballon.endX = GetRandomNumber(minX, maxX);
-	ballon.color = colors[GetRandomNumber(0, colors.length - 1)];
-	ballon.speed = GetRandomNumber(90, 110) / 10;
-	ballon.hSpeed = GetRandomNumber(15, 25) / 100;
-
-	ballons.push(ballon);
+	balloons.push(balloon);
 }
 
-function DrawBallon(ballon)
+function DrawBalloon(balloon)
 {
 	context.beginPath();
-	context.arc(ballon.curX, ballon.curY, ballonRadius, 0, 2 * Math.PI, false);
-	context.fillStyle = ballon.color;
+	context.arc(balloon.x, balloon.y, balloonRadius, 0, 2 * Math.PI, false);
+	context.fillStyle = balloon.color;
 	context.fill();
 	context.lineWidth = 2;
 	context.strokeStyle = 'black';
