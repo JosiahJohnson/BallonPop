@@ -38,8 +38,8 @@ $(function ()
 
 function TouchStart(e)
 {
-	popSound.play();
-	popSound.pause();
+	//popSound.play();
+	//popSound.pause();
 
 	e.preventDefault();
 	touchX = e.touches[0].clientX;
@@ -90,8 +90,8 @@ function Update()
 		touchY = null;
 	}
 
-	if (remove.length > 0)
-		popSound.play();
+	//if (remove.length > 0)
+		//popSound.play();
 
 	for (var i = 0; i < balloons.length; i++)
 	{
