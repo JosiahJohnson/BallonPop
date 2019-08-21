@@ -1,4 +1,4 @@
-var canvas, context, startTime, lastTime, curTime, elapsedTime, delta, nextFrame, nextBalloon, radiusWidth, radiusHeight;
+var canvas, context, startTime, lastTime, curTime, elapsedTime, delta, nextFrame, nextBalloon, radiusWidth, radiusHeight, popSound;
 var colors = ["#FF0000", "#FF6A00", "#FFD800", "#00C116", "#0026FF", "#B200FF", "#FF00DC", "#C0C0C0", "#00FFFF"];
 var balloons = [];
 var touchX = null;
@@ -30,6 +30,8 @@ $(function ()
 	startTime = lastTime;
 	nextBalloon = lastTime;
 	nextFrame = lastTime;
+
+	popSound = new Audio("pop.mp3");
 
 	GameLoop();
 });
@@ -84,6 +86,9 @@ function Update()
 		touchX = null;
 		touchY = null;
 	}
+
+	if (remove.length > 0)
+		popSound.play();
 
 	for (var i = 0; i < balloons.length; i++)
 	{
