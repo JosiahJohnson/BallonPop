@@ -1,9 +1,9 @@
-var canvas, context, startTime, lastTime, curTime, elapsedTime, delta, balloonRadius;
-var nextBalloon = 0;
-var colors = ["#FF0000", "#FF6A00", "#FFD800", "#00C116", "#0026FF", "#B200FF", "#FF00DC", "#FFFFFF", "#A0A0A0", "#00FFFF"];
+var canvas, context, startTime, lastTime, curTime, elapsedTime, delta, nextFrame, nextBalloon, radiusWidth, radiusHeight;
+var colors = ["#FF0000", "#FF6A00", "#FFD800", "#00C116", "#0026FF", "#B200FF", "#FF00DC", "#C0C0C0", "#00FFFF"];
 var balloons = [];
 var touchX = null;
 var touchY = null;
+var fps = 31;
 
 $(function ()
 {
@@ -18,15 +18,19 @@ $(function ()
 		width = 500;
 
 	height = Math.round(width /ratio);
-	balloonRadius = Math.round(height * 0.10);
+	radiusWidth = Math.round(height * 0.10);
+	radiusHeight = Math.round(radiusWidth * 1.15)
 
 	canvas = document.getElementById("BalloonCanvas");
 	context = canvas.getContext("2d");
 	canvas.width = width;
 	canvas.height = height;
 
-	lastTime = (new Date()).getTime();
+	lastTime = performance.now();
 	startTime = lastTime;
+	nextBalloon = lastTime;
+	nextFrame = lastTime;
+
 	GameLoop();
 });
 
@@ -37,16 +41,18 @@ function TouchStart(e)
 	touchY = e.touches[0].clientY;
 }
 
-function GameLoop()
+function GameLoop(newtime)
 {
 	requestAnimationFrame(GameLoop);
 
-	curTime = (new Date()).getTime();
+	curTime = newtime;
 	delta = (curTime - lastTime) / 100;
 	elapsedTime = curTime - startTime;
 
 	Update();
-	Render();
+
+	if (elapsedTime > nextFrame)
+		Render();
 
 	lastTime = curTime;
 }
@@ -67,13 +73,11 @@ function Update()
 	//check for popped balloons
 	if (touchX != null && touchY != null)
 	{
-		console.log(touchX);
-
 		for (var i = 0; i < balloons.length; i++)
 		{
 			var balloon = balloons[i];
 
-			if (touchX > (balloon.x - balloonRadius) && touchX < (balloon.x + balloonRadius) && touchY > (balloon.y - balloonRadius) && touchY < (balloon.y + balloonRadius))
+			if (touchX > (balloon.x - radiusWidth) && touchX < (balloon.x + radiusWidth) && touchY > (balloon.y - radiusHeight) && touchY < (balloon.y + radiusHeight))
 				remove.push(i);
 		}
 
@@ -95,18 +99,20 @@ function Update()
 			balloon.x += balloon.hSpeed;
 
 		//check if off screen
-		if (balloon.y < -balloonRadius && !remove.includes(i))
+		if (balloon.y < -radiusHeight && !remove.includes(i))
 			remove.push(i);
 	}
-
-	//remove balloons
-	remove.sort((a, b) => (a - b));
-	for (var i = remove.length - 1; i >= 0; i--)
+	
+	if (remove.length > 0)
 	{
-		balloons.splice(remove[i], 1);
-	}
+		//remove balloons
+		remove.sort((a, b) => (a - b));
 
-	//console.log(balloons.length);
+		for (var i = (remove.length - 1); i >= 0; i--)
+		{
+			balloons.splice(remove[i], 1);
+		}
+	}
 }
 
 function Render()
@@ -118,6 +124,8 @@ function Render()
 	{
 		DrawBalloon(balloons[i]);
 	}
+
+	nextFrame = elapsedTime + ((1 / fps) * 1000);
 }
 
 function GetRandomNumber(min, max)
@@ -130,8 +138,8 @@ function GetRandomNumber(min, max)
 function CreateBalloon()
 {
 	var balloon = {};
-	balloon.x = GetRandomNumber(balloonRadius, canvas.width - balloonRadius);
-	balloon.y = canvas.height + balloonRadius;
+	balloon.x = GetRandomNumber(radiusWidth, canvas.width - radiusWidth);
+	balloon.y = canvas.height + radiusHeight;
 	balloon.dir = GetRandomNumber(0, 1);
 	balloon.color = colors[GetRandomNumber(0, colors.length - 1)];
 	balloon.speed = GetRandomNumber(90, 110) / 10;
@@ -142,17 +150,17 @@ function CreateBalloon()
 
 function DrawBalloon(balloon)
 {
+	var offset = Math.round(radiusWidth / 3);
+	var gradient = context.createRadialGradient(balloon.x + offset, balloon.y - offset, 1, balloon.x + offset, balloon.y - offset, radiusWidth);
+	gradient.addColorStop(0, "white");
+	gradient.addColorStop(1, balloon.color);
+
 	context.beginPath();
-	context.arc(balloon.x, balloon.y, balloonRadius, 0, 2 * Math.PI, false);
-	context.fillStyle = balloon.color;
+	context.ellipse(balloon.x, balloon.y, radiusWidth, radiusHeight, Math.PI, 0, 2 * Math.PI);
+	context.fillStyle = gradient;
 	context.fill();
 
 	context.lineWidth = 2;
 	context.strokeStyle = 'black';
 	context.stroke();
-
-	context.beginPath();
-	context.arc(balloon.x + Math.round(balloonRadius / 4), balloon.y - Math.round(balloonRadius / 4), Math.round(balloonRadius / 3), 0, 2 * Math.PI, false);
-	context.fillStyle = "white";
-	context.fill();
 }
