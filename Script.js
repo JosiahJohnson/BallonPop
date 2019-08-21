@@ -38,6 +38,9 @@ $(function ()
 
 function TouchStart(e)
 {
+	popSound.play();
+	popSound.pause();
+
 	e.preventDefault();
 	touchX = e.touches[0].clientX;
 	touchY = e.touches[0].clientY;
