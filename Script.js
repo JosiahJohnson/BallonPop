@@ -4,6 +4,9 @@ var balloons = [];
 var touchX = null;
 var touchY = null;
 var fps = 31;
+var impactFrames = [];
+var impactX = null;
+var impactY = null;
 
 $(function ()
 {
@@ -81,6 +84,13 @@ function Update()
 				remove.push(i);
 		}
 
+		if (remove.length > 0 && impactFrames.length == 0)
+		{
+			impactFrames = [.2, .8, 1, .8, .5, .2];
+			impactX = touchX;
+			impactY = touchY;
+		}
+
 		touchX = null;
 		touchY = null;
 	}
@@ -123,6 +133,14 @@ function Render()
 	for (var i = 0; i < balloons.length; i++)
 	{
 		DrawBalloon(balloons[i]);
+	}
+
+	//draw impact
+	if (impactFrames.length > 0)
+	{
+		var mult = impactFrames[0];
+		DrawImpact(impactX, impactY, Math.round(radiusWidth * mult));
+		impactFrames.shift();
 	}
 
 	nextFrame = elapsedTime + ((1 / fps) * 1000);
@@ -174,16 +192,32 @@ function DrawBalloon(balloon)
 	context.fillStyle = balloon.color;
 	context.fill();
 	context.stroke();
-
-	//DrawImpact(balloon.x, balloon.y, radiusHeight);
 }
 
 function DrawImpact(x, y, size)
 {
+	var third = Math.round(size / 5);
+	var half = Math.round((third * 3) / 2);
 	context.beginPath();
-	context.moveTo(x, y);
-	//context.lineTo(
-	context.stroke();
+	context.moveTo(x - half, y - half + third);
+	context.lineTo(x - size, y - size);
+	context.lineTo(x - half + third, y - half);
+	context.lineTo(x, y - size);
+	context.lineTo(x + half - third, y - half);
+	context.lineTo(x + size, y - size);
+	context.lineTo(x + half, y - half + third);
+	context.lineTo(x + size, y);
+	context.lineTo(x + half, y + half - third);
+	context.lineTo(x + size, y + size);
+	context.lineTo(x + half - third, y + half);
+	context.lineTo(x, y + size);
+	context.lineTo(x - half + third, y + half);
+	context.lineTo(x - size, y + size);
+	context.lineTo(x - half, y + half - third);
+	context.lineTo(x - size, y);
+	context.lineTo(x - half, y - half + third);
+	context.fillStyle = "white";
+	context.fill();
 }
 
 function DrawPiece(balloon)
