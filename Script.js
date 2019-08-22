@@ -1,4 +1,4 @@
-var canvas, context, startTime, lastTime, curTime, elapsedTime, delta, nextFrame, nextBalloon, radiusWidth, radiusHeight, popSound;
+var canvas, context, startTime, lastTime, curTime, elapsedTime, delta, nextFrame, nextBalloon, radiusWidth, radiusHeight;
 var colors = ["#FF0000", "#FF6A00", "#FFD800", "#00C116", "#0026FF", "#B200FF", "#FF00DC", "#C0C0C0", "#00FFFF"];
 var balloons = [];
 var touchX = null;
@@ -31,16 +31,11 @@ $(function ()
 	nextBalloon = lastTime;
 	nextFrame = lastTime;
 
-	popSound = new Audio("pop.mp3");
-
 	GameLoop();
 });
 
 function TouchStart(e)
 {
-	//popSound.play();
-	//popSound.pause();
-
 	e.preventDefault();
 	touchX = e.touches[0].clientX;
 	touchY = e.touches[0].clientY;
@@ -89,9 +84,6 @@ function Update()
 		touchX = null;
 		touchY = null;
 	}
-
-	//if (remove.length > 0)
-		//popSound.play();
 
 	for (var i = 0; i < balloons.length; i++)
 	{
@@ -170,5 +162,39 @@ function DrawBalloon(balloon)
 
 	context.lineWidth = 2;
 	context.strokeStyle = 'black';
+	context.stroke();
+
+	var sideLength = Math.round(radiusWidth / 7);
+	var startY = balloon.y + radiusHeight;
+	context.beginPath();
+	context.moveTo(balloon.x, startY);
+	context.lineTo(balloon.x - sideLength, startY + sideLength);
+	context.lineTo(balloon.x + sideLength, startY + sideLength);
+	context.lineTo(balloon.x, startY);
+	context.fillStyle = balloon.color;
+	context.fill();
+	context.stroke();
+
+	//DrawImpact(balloon.x, balloon.y, radiusHeight);
+}
+
+function DrawImpact(x, y, size)
+{
+	context.beginPath();
+	context.moveTo(x, y);
+	//context.lineTo(
+	context.stroke();
+}
+
+function DrawPiece(balloon)
+{
+	var offset = Math.round(radiusWidth / 4);
+	var startX = balloon.x + offset;
+	var startY = balloon.y - offset;
+	context.beginPath();
+	context.moveTo(startX, startY);
+	context.lineTo(startX, startY - radiusHeight);
+	context.arcTo(startX + radiusHeight, startY - radiusHeight, startX + radiusHeight, startY, radiusHeight);
+	context.lineTo(startX, startY);
 	context.stroke();
 }
