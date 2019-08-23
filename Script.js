@@ -7,6 +7,8 @@ var fps = 31;
 var impactFrames = [];
 var impactX = null;
 var impactY = null;
+var popped = [];
+var poppedFrames = [];
 
 $(function ()
 {
@@ -84,11 +86,22 @@ function Update()
 				remove.push(i);
 		}
 
-		if (remove.length > 0 && impactFrames.length == 0)
+		if (remove.length > 0 && impactFrames.length == 0 && poppedFrames.length == 0)
 		{
 			impactFrames = [.2, .4, .6, .8, 1, .8];
 			impactX = touchX;
 			impactY = touchY;
+
+			for (var i = 0; i < remove.length; i++)
+			{
+				var pop = {};
+				pop.x = balloons[remove[i]].x;
+				pop.y = balloons[remove[i]].y;
+				pop.color = balloons[remove[i]].color;
+				popped.push(pop);
+			}
+
+			poppedFrames = [1.1, 1.3, 1.5];
 		}
 
 		touchX = null;
@@ -135,6 +148,22 @@ function Render()
 		DrawBalloon(balloons[i]);
 	}
 
+	//draw pops
+	if (poppedFrames.length > 0)
+	{
+		var mult = poppedFrames[0];
+
+		for (var i = 0; i < popped.length; i++)
+		{
+			DrawBalloon(popped[i], mult);
+		}
+
+		poppedFrames.shift();
+
+		if (poppedFrames.length == 0)
+			popped = [];
+	}
+
 	//draw impact
 	if (impactFrames.length > 0)
 	{
@@ -166,15 +195,15 @@ function CreateBalloon()
 	balloons.push(balloon);
 }
 
-function DrawBalloon(balloon)
+function DrawBalloon(balloon, mult = 1.0)
 {
-	var offset = Math.round(radiusWidth / 3);
-	var gradient = context.createRadialGradient(balloon.x + offset, balloon.y - offset, 1, balloon.x + offset, balloon.y - offset, radiusWidth);
+	var offset = Math.round((radiusWidth * mult) / 3);
+	var gradient = context.createRadialGradient(balloon.x + offset, balloon.y - offset, 1, balloon.x + offset, balloon.y - offset, Math.round(radiusWidth * mult));
 	gradient.addColorStop(0, "white");
 	gradient.addColorStop(1, balloon.color);
 
 	context.beginPath();
-	context.ellipse(balloon.x, balloon.y, radiusWidth, radiusHeight, Math.PI, 0, 2 * Math.PI);
+	context.ellipse(balloon.x, balloon.y, Math.round(radiusWidth * mult), Math.round(radiusHeight * mult), Math.PI, 0, 2 * Math.PI);
 	context.fillStyle = gradient;
 	context.fill();
 
@@ -182,8 +211,8 @@ function DrawBalloon(balloon)
 	context.strokeStyle = 'black';
 	context.stroke();
 
-	var sideLength = Math.round(radiusWidth / 7);
-	var startY = balloon.y + radiusHeight;
+	var sideLength = Math.round((radiusWidth * mult) / 7);
+	var startY = balloon.y + Math.round(radiusHeight * mult);
 	context.beginPath();
 	context.moveTo(balloon.x, startY);
 	context.lineTo(balloon.x - sideLength, startY + sideLength);
