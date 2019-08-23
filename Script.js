@@ -1,5 +1,5 @@
 var canvas, context, startTime, lastTime, curTime, elapsedTime, delta, nextFrame, nextBalloon, radiusWidth, radiusHeight;
-var colors = ["#FF0000", "#FF6A00", "#FFD800", "#00C116", "#0026FF", "#B200FF", "#FF00DC", "#C0C0C0", "#00FFFF"];
+var colors = ["#FF0000", "#FF6A00", "#FFD800", "#00C116", "#0026FF", "#B200FF", "#FF00DC", "#000000", "#00FFFF"];
 var balloons = [];
 var touchX = null;
 var touchY = null;
@@ -86,7 +86,7 @@ function Update()
 
 		if (remove.length > 0 && impactFrames.length == 0)
 		{
-			impactFrames = [.2, .8, 1, .8, .5, .2];
+			impactFrames = [.2, .4, .6, .8, 1, .8];
 			impactX = touchX;
 			impactY = touchY;
 		}
